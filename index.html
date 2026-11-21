@@ -32,6 +32,16 @@ input[type=time]{margin:0;padding:8px;direction:ltr}
 .sw{width:36px;height:36px;padding:0;margin:0;border-radius:50%;border:3px solid var(--bd)}
 .hrow{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--bd);font-size:14px}
 .hrow:last-child{border:0}.today{font-weight:700;background:color-mix(in srgb,var(--ac) 14%,transparent);border-radius:8px;padding-inline:8px}
+body.t-pill{color:#fff;min-height:100vh}
+.t-pill .logo{width:96px;height:96px;font-size:36px}.t-pill .hero h1{font-size:28px;font-weight:700}
+.t-pill .card,.t-pill .prod{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.14);color:#fff}
+.t-pill .offer{background:rgba(255,255,255,.1);color:#fff;border-color:rgba(255,255,255,.3)}
+.t-pill .mu{color:rgba(255,255,255,.72)}.t-pill .hrow{border-color:rgba(255,255,255,.14)}
+.t-pill button.s{background:rgba(255,255,255,.1);color:#fff;border:0;border-radius:99px;height:50px}
+.socs{display:flex;justify-content:center;gap:10px;margin:4px 0 16px}
+.soc{width:46px;height:46px;border-radius:50%;background:rgba(255,255,255,.12);display:flex;align-items:center;justify-content:center}.soc img{filter:invert(1)}
+.pl{display:flex;align-items:center;height:56px;padding:0 18px;border-radius:99px;background:var(--pl);color:var(--pt);font-weight:700;font-size:15px;text-decoration:none;margin-bottom:12px}
+.pl .tx{flex:1;text-align:center}.pl .pi{width:22px;display:flex;justify-content:center}
 .hero h1,.hero .mu{color:var(--hf,var(--tx))}
 #sh,#vc{background:var(--card);color:var(--tx);border:1px solid var(--bd)}
 .wide{max-width:900px}
@@ -73,7 +83,7 @@ function esc(s){return String(s||'').replace(/[&<>"]/g,function(c){return{'&':'&
 function clean(s){return String(s||'').trim().replace(/^@/,'')}
 function digits(s){return String(s||'').replace(/\D/g,'')}
 
-function resetTheme(){document.body.style.background='';['--ac','--act','--hf','--lb','--lt'].forEach(function(v){document.documentElement.style.removeProperty(v)})}
+function resetTheme(){document.body.style.background='';document.body.className='';['--ac','--act','--hf','--lb','--lt','--pl','--pt'].forEach(function(v){document.documentElement.style.removeProperty(v)})}
 async function route(){
   resetTheme();app.className='w';
   var h=location.hash.slice(1);
@@ -100,6 +110,19 @@ function hoursHtml(h){
   return '<div class="card"><h2>🕒 ساعات العمل</h2>'+DAYS.map(function(d,k){return '<div class="hrow'+(JSD[k]===td?' today':'')+'"><span>'+d+'</span><span dir="ltr">'+(a[k].o?t12(a[k].f)+' - '+t12(a[k].t):'مغلق')+'</span></div>'}).join('')+'</div>';
 }
 function resizeImg(file){return new Promise(function(res,rej){var im=new Image();im.onload=function(){var m=Math.min(1,320/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=Math.round(im.width*m);c.height=Math.round(im.height*m);c.getContext('2d').drawImage(im,0,0,c.width,c.height);c.toBlob(res,'image/png')};im.onerror=rej;im.src=URL.createObjectURL(file)})}
+var SI='https://cdn.jsdelivr.net/npm/simple-icons@13/icons/';
+function sv(p){return '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'+p+'</svg>'}
+var PI={call:sv('<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/>'),
+ map:sv('<path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>'),
+ rev:sv('<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>'),
+ ln:sv('<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>')};
+function hsl(c){var r=parseInt(c.substr(1,2),16)/255,g=parseInt(c.substr(3,2),16)/255,b=parseInt(c.substr(5,2),16)/255,mx=Math.max(r,g,b),mn=Math.min(r,g,b),l=(mx+mn)/2,h=0,sa=0;if(mx!==mn){var d=mx-mn;sa=l>.5?d/(2-mx-mn):d/(mx+mn);h=mx===r?(g-b)/d+(g<b?6:0):mx===g?(b-r)/d+2:(r-g)/d+4;h*=60}return[Math.round(h),Math.round(sa*100)]}
+function linksHtml(L,tp){
+  var a=function(l,cls,inner){return '<a class="'+cls+'" data-k="'+l[3]+'" target="_blank" rel="noopener" href="'+esc(l[2])+'">'+inner+'</a>'};
+  if(tp!=='pill')return L.map(function(l){return a(l,'lnk','<i>'+l[0]+'</i>'+esc(l[1]))}).join('');
+  var sm={ig:'instagram',sc:'snapchat',tt:'tiktok',x:'x'},soc=L.filter(function(l){return sm[l[3]]}),main=L.filter(function(l){return !sm[l[3]]});
+  return (soc.length?'<div class="socs">'+soc.map(function(l){return a(l,'soc','<img src="'+SI+sm[l[3]]+'.svg" alt="'+esc(l[1])+'" width="20" height="20">')}).join('')+'</div>':'')+main.map(function(l){var ic=l[3]==='wa'?'<img src="'+SI+'whatsapp.svg" alt="" width="20" height="20">':(PI[l[3]]||PI.ln);return a(l,'pl','<span class="pi">'+ic+'</span><span class="tx">'+esc(l[1])+'</span><span class="pi"></span>')}).join('');
+}
 async function store(slug,src){
   var r=await sb.from('shops').select('*').eq('slug',slug).maybeSingle(),s=r.data;
   if(!s){app.innerHTML='<div class="card"><h1>المحل غير موجود</h1></div>';return}
@@ -115,16 +138,17 @@ async function store(slug,src){
   if(s.x)L.push(['✖️','إكس','https://x.com/'+clean(s.x),'x']);
   if(safe(s.map))L.push(['📍','الموقع على خرائط قوقل',safe(s.map),'map']);
   (s.links||[]).forEach(function(l){var u=safe(l.u);if(l.t&&u)L.push(['🔗',l.t,u,'ln'])});
-  document.title=s.name;
+  document.title=s.name;var tp=s.tpl==='pill'?'pill':'classic';
   if(/^#[0-9a-fA-F]{6}$/.test(s.color||'')){
     var cl=s.color,lum=(0.299*parseInt(cl.substr(1,2),16)+0.587*parseInt(cl.substr(3,2),16)+0.114*parseInt(cl.substr(5,2),16))/255,ts=document.documentElement.style;
     document.body.style.background=cl;
     ts.setProperty('--ac',cl);ts.setProperty('--hf',lum>0.6?'#14181f':'#fff');ts.setProperty('--lb','#fff');ts.setProperty('--lt',cl);
   }
+  if(tp==='pill'){var pc=/^#[0-9a-fA-F]{6}$/.test(s.color||'')?s.color:'#0f766e',hh=hsl(pc),sa=Math.min(hh[1],45),tz=document.documentElement.style;document.body.className='t-pill';document.body.style.background='linear-gradient(180deg,hsl('+hh[0]+','+Math.round(sa*.8)+'%,12%),hsl('+hh[0]+','+Math.round(sa*.7)+'%,26%))';tz.setProperty('--pl','hsl('+hh[0]+',55%,91%)');tz.setProperty('--pt','hsl('+hh[0]+',45%,15%)');tz.setProperty('--hf','#fff');tz.setProperty('--lb','#fff');tz.setProperty('--lt',pc)}
   var on=openNow(s.hours),today=ymd(new Date()),pr=(s.products||[]).filter(function(p){return p.n});
   app.innerHTML='<div class="hero"><div class="logo">'+(/^https:\/\//.test(s.logo||'')?'<img src="'+esc(s.logo)+'" alt="">':esc(s.name.charAt(0)))+'</div><h1>'+esc(s.name)+'</h1><div class="mu">'+esc(s.descr)+'</div>'+(on==null?'':'<span class="pill">'+(on?'🟢 مفتوح الآن':'🔴 مغلق الآن')+'</span>')+'</div>'+
    (s.offer_text&&(!s.offer_until||s.offer_until>=today)?'<div class="offer">🎁 '+esc(s.offer_text)+'</div>':'')+
-   L.map(function(l){return '<a class="lnk" data-k="'+l[3]+'" target="_blank" rel="noopener" href="'+esc(l[2])+'"><i>'+l[0]+'</i>'+esc(l[1])+'</a>'}).join('')+
+   linksHtml(L,tp)+
    (s.phone?'<button class="s" id="vc">📇 احفظ الرقم في جهات الاتصال</button>':'')+
    (pr.length?'<h2 style="margin:16px 0 8px;color:var(--hf,var(--tx))">🛍️ المنتجات</h2><div class="prods">'+pr.map(function(p){return '<div class="prod">'+(/^https:\/\//.test(p.i||'')?'<img src="'+esc(p.i)+'" alt="">':'')+'<b>'+esc(p.n)+'</b><span class="mu">'+esc(p.p)+'</span></div>'}).join('')+'</div>':'')+
    hoursHtml(s.hours)+'<button class="s" id="sh">مشاركة الصفحة</button>';
@@ -250,13 +274,14 @@ function form(i){
   var LK=JSON.parse(JSON.stringify(s.links||[])),PR=JSON.parse(JSON.stringify(s.products||[])),SR=JSON.parse(JSON.stringify(s.sources||[]));
   var col=/^#[0-9a-fA-F]{6}$/.test(s.color||'')?s.color:COLORS[0],logo=s.logo||'';
   box.innerHTML='<div class="card"><h2>'+(i>=0?'تعديل المحل':'محل جديد')+'</h2>'+F.map(function(f){return '<label>'+f[1]+'</label><input id="f_'+f[0]+'" value="'+esc(s[f[0]])+'">'}).join('')+
+   '<label>قالب صفحة الزبون</label><select id="f_tpl"><option value="classic">كلاسيك (خلفية بلون المحل)</option><option value="pill">أزرار بيضاوية على خلفية داكنة</option></select>'+
    '<label>لون المحل</label><div class="sws">'+COLORS.map(function(c){return '<button type="button" class="sw" data-c="'+c+'" style="background:'+c+'"></button>'}).join('')+'<input type="color" id="cc" value="'+col+'" style="width:48px;height:36px;padding:2px;margin:0" title="لون مخصص"></div>'+
    '<label>ساعات العمل</label><div class="hr mu"><span>اليوم</span><span>مفتوح</span><span>من</span><span>إلى</span></div>'+
    DAYS.map(function(d,k){var h=H[k];return '<div class="hr"><span>'+d+'</span><input type="checkbox" class="ho"'+(h.o?' checked':'')+'><input type="time" class="hf" value="'+h.f+'"><input type="time" class="ht" value="'+h.t+'"></div>'}).join('')+
    '<button type="button" class="s" id="ha">تطبيق ساعات السبت على كل الأيام</button>'+
    '<label style="display:block;margin-top:12px">شعار المحل</label><div id="lp"></div><input type="file" id="lg" accept="image/*">'+
    '<h2 style="margin-top:14px">🔗 أزرار مخصصة</h2><div id="ed_ln"></div><h2 style="margin-top:14px">🎁 عرض</h2>'+OFR.map(function(f){return subIn(f,s)}).join('')+'<h2 style="margin-top:14px">🛍️ المنتجات</h2><div id="ed_pr"></div><h2 style="margin-top:14px">📍 مصادر البار كود</h2><div class="mu">مثال: door = الباب، t1 = طاولة 1. لكل مصدر بار كود وإحصائيات مستقلة.</div><div id="ed_sr"></div><h2 style="margin-top:14px">💳 الاشتراك</h2>'+SUB.map(function(f){return subIn(f,s)}).join('')+(i>=0?'<h2 style="margin-top:14px">💰 المدفوعات</h2><div id="pyl"></div><div class="row"><input id="pa" type="number" placeholder="المبلغ"><input id="pd" type="date" value="'+ymd(new Date())+'"></div><input id="pn" placeholder="ملاحظة (اختياري)"><button type="button" class="s" id="pb">تسجيل دفعة</button><h2 style="margin-top:14px">📈 تقرير المحل</h2><div class="row"><button type="button" class="s" id="rp">مشاركة الرابط</button><button type="button" class="s" id="rw">إرسال بالواتساب</button></div>':'')+'<button id="sv">حفظ</button>'+(i>=0?'<button class="s" id="dup">نسخ المحل</button><button class="s" id="rm">حذف المحل</button>':'')+'</div><div id="qbox"></div>';
-  box.scrollIntoView({behavior:'smooth'});
+  box.scrollIntoView({behavior:'smooth'});document.getElementById('f_tpl').value=s.tpl||'classic';
   if(i>=0)qr(s.slug,SR);
   function mark(){[].forEach.call(box.querySelectorAll('.sw'),function(b){b.style.borderColor=b.getAttribute('data-c')===col?'var(--tx)':'var(--bd)'})}
   [].forEach.call(box.querySelectorAll('.sw'),function(b){b.onclick=function(){col=b.getAttribute('data-c');document.getElementById('cc').value=col;mark()}});
@@ -276,7 +301,7 @@ function form(i){
     document.getElementById('rw').onclick=function(){if(!digits(s.owner_phone)){alert('أضف رقم صاحب المحل أولاً واحفظ');return}window.open('https://wa.me/'+digits(s.owner_phone)+'?text='+encodeURIComponent('تقرير أداء صفحة '+s.name+' آخر 30 يوم: '+rurl),'_blank')};
   }
   document.getElementById('sv').onclick=async function(){
-    var btn=this,o={};F.concat(SUB,OFR).forEach(function(f){o[f[0]]=document.getElementById('f_'+f[0]).value.trim()});['starts_on','ends_on','price','offer_until'].forEach(function(k){if(!o[k])o[k]=null});o.links=LK.filter(function(l){return l.t&&l.u});o.products=PR.filter(function(p){return p.n});o.sources=SR.filter(function(x){return x.k}).map(function(x){var k=String(x.k).toLowerCase().replace(/[^a-z0-9]/g,'');return{k:k,n:x.n||k}}).filter(function(x){return x.k});
+    var btn=this,o={};F.concat(SUB,OFR).forEach(function(f){o[f[0]]=document.getElementById('f_'+f[0]).value.trim()});['starts_on','ends_on','price','offer_until'].forEach(function(k){if(!o[k])o[k]=null});o.tpl=document.getElementById('f_tpl').value;o.links=LK.filter(function(l){return l.t&&l.u});o.products=PR.filter(function(p){return p.n});o.sources=SR.filter(function(x){return x.k}).map(function(x){var k=String(x.k).toLowerCase().replace(/[^a-z0-9]/g,'');return{k:k,n:x.n||k}}).filter(function(x){return x.k});
     o.slug=o.slug.toLowerCase().replace(/[^a-z0-9-]/g,'');
     if(!o.name||!o.slug){alert('الاسم والرابط القصير مطلوبين');return}
     btn.textContent='جاري الحفظ...';btn.disabled=true;
