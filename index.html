@@ -25,6 +25,13 @@ button.s{background:transparent;color:var(--tx);border:1px solid var(--bd)}
 .logo{width:72px;height:72px;border-radius:50%;background:var(--ac);color:var(--act);display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:700;margin:0 auto 10px}
 .lnk{display:flex;align-items:center;gap:10px;padding:14px;margin-bottom:10px;background:var(--card);border:1px solid var(--bd);border-radius:14px;color:var(--tx);text-decoration:none;font-weight:600}
 .lnk i{font-style:normal;font-size:20px}
+input[type=time]{margin:0;padding:8px;direction:ltr}
+.hr{display:grid;grid-template-columns:62px 40px 1fr 1fr;gap:6px;align-items:center;margin-bottom:6px;font-size:14px}
+.hr input[type=checkbox]{width:20px;height:20px;margin:0}
+.sws{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:6px 0 12px}
+.sw{width:36px;height:36px;padding:0;margin:0;border-radius:50%;border:3px solid var(--bd)}
+.hrow{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--bd);font-size:14px}
+.hrow:last-child{border:0}.today{font-weight:700;color:var(--ac)}
 #qr canvas,#qr img{width:220px;height:220px}
 .logo img{width:100%;height:100%;border-radius:50%;object-fit:cover}
 #qr{display:flex;justify-content:center;padding:12px;background:#fff;border-radius:12px;width:max-content;margin:8px auto}
@@ -49,6 +56,17 @@ async function route(){
   var r=await sb.auth.getSession();user=r.data.session?r.data.session.user:null;
   user?admin():login();
 }
+var DAYS=['السبت','الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة'],JSD=[6,0,1,2,3,4,5];
+var COLORS=['#0f766e','#2563eb','#7c3aed','#db2777','#dc2626','#ea580c','#ca8a04','#16a34a','#111827'];
+function parseH(h){try{var a=JSON.parse(h);if(Array.isArray(a)&&a.length==7)return a}catch(e){}return null}
+function t12(t){var p=String(t).split(':'),h=+p[0],m=p[1]||'00',x=h>=12?'م':'ص';h=h%12||12;return h+':'+m+' '+x}
+function hoursHtml(h){
+  var a=parseH(h);
+  if(!a)return h?'<p class="mu" style="text-align:center">🕒 '+esc(h)+'</p>':'';
+  var td=new Date().getDay();
+  return '<div class="card"><h2>🕒 ساعات العمل</h2>'+DAYS.map(function(d,k){return '<div class="hrow'+(JSD[k]===td?' today':'')+'"><span>'+d+'</span><span dir="ltr">'+(a[k].o?t12(a[k].f)+' - '+t12(a[k].t):'مغلق')+'</span></div>'}).join('')+'</div>';
+}
+function resizeImg(file){return new Promise(function(res,rej){var im=new Image();im.onload=function(){var m=Math.min(1,320/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=Math.round(im.width*m);c.height=Math.round(im.height*m);c.getContext('2d').drawImage(im,0,0,c.width,c.height);c.toBlob(res,'image/png')};im.onerror=rej;im.src=URL.createObjectURL(file)})}
 async function store(slug){
   var r=await sb.from('shops').select('*').eq('slug',slug).maybeSingle(),s=r.data;
   if(!s){app.innerHTML='<div class="card"><h1>المحل غير موجود</h1></div>';return}
@@ -64,7 +82,7 @@ async function store(slug){
   document.title=s.name;
   if(/^#[0-9a-fA-F]{6}$/.test(s.color||'')){document.documentElement.style.setProperty('--ac',s.color);document.documentElement.style.setProperty('--act','#fff')}
   app.innerHTML='<div class="hero"><div class="logo">'+(/^https:\/\//.test(s.logo||'')?'<img src="'+esc(s.logo)+'" alt="">':esc(s.name.charAt(0)))+'</div><h1>'+esc(s.name)+'</h1><div class="mu">'+esc(s.descr)+'</div></div>'+
-   L.map(function(l){return '<a class="lnk" target="_blank" rel="noopener" href="'+esc(l[2])+'"><i>'+l[0]+'</i>'+l[1]+'</a>'}).join('')+(s.hours?'<p class="mu" style="text-align:center">🕒 '+esc(s.hours)+'</p>':'')+'<button class="s" id="sh">مشاركة الصفحة</button>';
+   L.map(function(l){return '<a class="lnk" target="_blank" rel="noopener" href="'+esc(l[2])+'"><i>'+l[0]+'</i>'+l[1]+'</a>'}).join('')+hoursHtml(s.hours)+'<button class="s" id="sh">مشاركة الصفحة</button>';
   document.getElementById('sh').onclick=function(){var u=location.href;if(navigator.share)navigator.share({title:s.name,url:u});else if(navigator.clipboard){navigator.clipboard.writeText(u);alert('تم نسخ الرابط')}};
 }
 function login(){
@@ -83,19 +101,41 @@ async function admin(){
   document.getElementById('new').onclick=function(){form(-1)};
   document.getElementById('out').onclick=async function(){await sb.auth.signOut();route()};
 }
-var F=[['name','اسم المحل'],['descr','وصف قصير'],['slug','الرابط القصير (إنجليزي بدون مسافات)'],['phone','رقم الاتصال (مع الرمز 966...)'],['wa','رقم الواتساب'],['ig','إنستقرام (اسم الحساب)'],['sc','سناب'],['tt','تيك توك'],['x','إكس'],['map','رابط خرائط قوقل'],['hours','ساعات العمل (مثال: يومياً 9ص - 11م)'],['color','لون المحل (مثال: #0f766e)'],['logo','رابط صورة الشعار (اختياري)']];
+var F=[['name','اسم المحل'],['descr','وصف قصير'],['slug','الرابط القصير (إنجليزي بدون مسافات)'],['phone','رقم الاتصال (مع الرمز 966...)'],['wa','رقم الواتساب'],['ig','إنستقرام (اسم الحساب)'],['sc','سناب'],['tt','تيك توك'],['x','إكس'],['map','رابط خرائط قوقل']];
 function form(i){
   var s=i>=0?shops[i]:{},box=document.getElementById('form');
+  var H=parseH(s.hours)||DAYS.map(function(){return{o:true,f:'09:00',t:'23:00'}});
+  var col=/^#[0-9a-fA-F]{6}$/.test(s.color||'')?s.color:COLORS[0],logo=s.logo||'';
   box.innerHTML='<div class="card"><h2>'+(i>=0?'تعديل المحل':'محل جديد')+'</h2>'+F.map(function(f){return '<label>'+f[1]+'</label><input id="f_'+f[0]+'" value="'+esc(s[f[0]])+'">'}).join('')+
+   '<label>لون المحل</label><div class="sws">'+COLORS.map(function(c){return '<button type="button" class="sw" data-c="'+c+'" style="background:'+c+'"></button>'}).join('')+'<input type="color" id="cc" value="'+col+'" style="width:48px;height:36px;padding:2px;margin:0" title="لون مخصص"></div>'+
+   '<label>ساعات العمل</label><div class="hr mu"><span>اليوم</span><span>مفتوح</span><span>من</span><span>إلى</span></div>'+
+   DAYS.map(function(d,k){var h=H[k];return '<div class="hr"><span>'+d+'</span><input type="checkbox" class="ho"'+(h.o?' checked':'')+'><input type="time" class="hf" value="'+h.f+'"><input type="time" class="ht" value="'+h.t+'"></div>'}).join('')+
+   '<button type="button" class="s" id="ha">تطبيق ساعات السبت على كل الأيام</button>'+
+   '<label style="display:block;margin-top:12px">شعار المحل</label><div id="lp"></div><input type="file" id="lg" accept="image/*">'+
    '<button id="sv">حفظ</button>'+(i>=0?'<button class="s" id="rm">حذف المحل</button>':'')+'</div><div id="qbox"></div>';
   box.scrollIntoView({behavior:'smooth'});
   if(i>=0)qr(s.slug);
+  function mark(){[].forEach.call(box.querySelectorAll('.sw'),function(b){b.style.borderColor=b.getAttribute('data-c')===col?'var(--tx)':'var(--bd)'})}
+  [].forEach.call(box.querySelectorAll('.sw'),function(b){b.onclick=function(){col=b.getAttribute('data-c');document.getElementById('cc').value=col;mark()}});
+  document.getElementById('cc').oninput=function(){col=this.value;mark()};mark();
+  document.getElementById('ha').onclick=function(){var r=box.querySelectorAll('.hr');var f=r[1].querySelector('.hf').value,t=r[1].querySelector('.ht').value,o=r[1].querySelector('.ho').checked;for(var k=2;k<r.length;k++){r[k].querySelector('.hf').value=f;r[k].querySelector('.ht').value=t;r[k].querySelector('.ho').checked=o}};
+  function showLogo(){var lp=document.getElementById('lp');lp.innerHTML=logo?'<div style="display:flex;align-items:center;gap:10px;margin-bottom:6px"><img src="'+esc(logo)+'" alt="" style="width:56px;height:56px;border-radius:50%;object-fit:cover"><button type="button" class="s" id="lr" style="width:auto;margin:0;padding:6px 12px">إزالة الشعار</button></div>':'';var lr=document.getElementById('lr');if(lr)lr.onclick=function(){logo='';showLogo()}}
+  showLogo();
   document.getElementById('sv').onclick=async function(){
-    var o={};F.forEach(function(f){o[f[0]]=document.getElementById('f_'+f[0]).value.trim()});
+    var btn=this,o={};F.forEach(function(f){o[f[0]]=document.getElementById('f_'+f[0]).value.trim()});
     o.slug=o.slug.toLowerCase().replace(/[^a-z0-9-]/g,'');
     if(!o.name||!o.slug){alert('الاسم والرابط القصير مطلوبين');return}
-    var r=i>=0?await sb.from('shops').update(o).eq('id',s.id):await sb.from('shops').insert(o);
-    if(r.error){alert(r.error.message.indexOf('duplicate')>-1?'الرابط مستخدم':r.error.message);return}
+    btn.textContent='جاري الحفظ...';btn.disabled=true;
+    try{
+      var file=document.getElementById('lg').files[0];
+      if(file){var bl=await resizeImg(file),path=user.id+'/'+Date.now()+'.png',u=await sb.storage.from('logos').upload(path,bl,{contentType:'image/png'});
+        if(u.error)throw new Error('تعذر رفع الشعار: '+u.error.message);
+        logo=sb.storage.from('logos').getPublicUrl(path).data.publicUrl}
+      o.logo=logo;o.color=col;
+      o.hours=JSON.stringify([].map.call(box.querySelectorAll('.hr:not(.mu)'),function(r){return{o:r.querySelector('.ho').checked,f:r.querySelector('.hf').value||'09:00',t:r.querySelector('.ht').value||'23:00'}}));
+      var r=i>=0?await sb.from('shops').update(o).eq('id',s.id):await sb.from('shops').insert(o);
+      if(r.error)throw new Error(r.error.message.indexOf('duplicate')>-1?'الرابط مستخدم':r.error.message);
+    }catch(e){alert(e.message);btn.textContent='حفظ';btn.disabled=false;return}
     await admin();var k=shops.findIndex(function(x){return x.slug===o.slug});form(k);
   };
   var rm=document.getElementById('rm');
