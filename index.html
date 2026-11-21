@@ -84,7 +84,11 @@ async function store(slug){
   if(s.x)L.push(['✖️','إكس','https://x.com/'+clean(s.x)]);
   if(s.map)L.push(['📍','الموقع على خرائط قوقل',s.map]);
   document.title=s.name;
-  if(/^#[0-9a-fA-F]{6}$/.test(s.color||'')){document.documentElement.style.setProperty('--ac',s.color);document.documentElement.style.setProperty('--act','#fff')}
+  if(/^#[0-9a-fA-F]{6}$/.test(s.color||'')){
+    var cl=s.color,lum=(0.299*parseInt(cl.substr(1,2),16)+0.587*parseInt(cl.substr(3,2),16)+0.114*parseInt(cl.substr(5,2),16))/255,st=document.documentElement.style;
+    document.body.style.background=cl;
+    st.setProperty('--ac',cl);st.setProperty('--hf',lum>0.6?'#14181f':'#fff');st.setProperty('--lb','#fff');st.setProperty('--lt',cl);
+  }
   app.innerHTML='<div class="hero"><div class="logo">'+(/^https:\/\//.test(s.logo||'')?'<img src="'+esc(s.logo)+'" alt="">':esc(s.name.charAt(0)))+'</div><h1>'+esc(s.name)+'</h1><div class="mu">'+esc(s.descr)+'</div></div>'+
    L.map(function(l){return '<a class="lnk" target="_blank" rel="noopener" href="'+esc(l[2])+'"><i>'+l[0]+'</i>'+l[1]+'</a>'}).join('')+hoursHtml(s.hours)+'<button class="s" id="sh">مشاركة الصفحة</button>';
   document.getElementById('sh').onclick=function(){var u=location.href;if(navigator.share)navigator.share({title:s.name,url:u});else if(navigator.clipboard){navigator.clipboard.writeText(u);alert('تم نسخ الرابط')}};
