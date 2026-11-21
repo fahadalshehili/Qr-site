@@ -25,6 +25,8 @@ button.s{background:transparent;color:var(--tx);border:1px solid var(--bd)}
 .logo{width:72px;height:72px;border-radius:50%;background:var(--ac);color:var(--act);display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:700;margin:0 auto 10px}
 .lnk{display:flex;align-items:center;gap:10px;padding:14px;margin-bottom:10px;background:var(--card);border:1px solid var(--bd);border-radius:14px;color:var(--tx);text-decoration:none;font-weight:600}
 .lnk i{font-style:normal;font-size:20px}
+#qr canvas,#qr img{width:220px;height:220px}
+.logo img{width:100%;height:100%;border-radius:50%;object-fit:cover}
 #qr{display:flex;justify-content:center;padding:12px;background:#fff;border-radius:12px;width:max-content;margin:8px auto}
 </style>
 </head>
@@ -60,8 +62,10 @@ async function store(slug){
   if(s.x)L.push(['✖️','إكس','https://x.com/'+clean(s.x)]);
   if(s.map)L.push(['📍','الموقع على خرائط قوقل',s.map]);
   document.title=s.name;
-  app.innerHTML='<div class="hero"><div class="logo">'+esc(s.name.charAt(0))+'</div><h1>'+esc(s.name)+'</h1><div class="mu">'+esc(s.descr)+'</div></div>'+
-   L.map(function(l){return '<a class="lnk" target="_blank" rel="noopener" href="'+esc(l[2])+'"><i>'+l[0]+'</i>'+l[1]+'</a>'}).join('');
+  if(/^#[0-9a-fA-F]{6}$/.test(s.color||'')){document.documentElement.style.setProperty('--ac',s.color);document.documentElement.style.setProperty('--act','#fff')}
+  app.innerHTML='<div class="hero"><div class="logo">'+(/^https:\/\//.test(s.logo||'')?'<img src="'+esc(s.logo)+'" alt="">':esc(s.name.charAt(0)))+'</div><h1>'+esc(s.name)+'</h1><div class="mu">'+esc(s.descr)+'</div></div>'+
+   L.map(function(l){return '<a class="lnk" target="_blank" rel="noopener" href="'+esc(l[2])+'"><i>'+l[0]+'</i>'+l[1]+'</a>'}).join('')+(s.hours?'<p class="mu" style="text-align:center">🕒 '+esc(s.hours)+'</p>':'')+'<button class="s" id="sh">مشاركة الصفحة</button>';
+  document.getElementById('sh').onclick=function(){var u=location.href;if(navigator.share)navigator.share({title:s.name,url:u});else if(navigator.clipboard){navigator.clipboard.writeText(u);alert('تم نسخ الرابط')}};
 }
 function login(){
   app.innerHTML='<div class="card"><h1>🔐 لوحة التحكم</h1><label>الإيميل</label><input id="em" type="email" dir="ltr"><label>كلمة المرور</label><input id="pw" type="password" dir="ltr"><button id="go">دخول</button><p class="mu" id="msg"></p></div>';
@@ -79,7 +83,7 @@ async function admin(){
   document.getElementById('new').onclick=function(){form(-1)};
   document.getElementById('out').onclick=async function(){await sb.auth.signOut();route()};
 }
-var F=[['name','اسم المحل'],['descr','وصف قصير'],['slug','الرابط القصير (إنجليزي بدون مسافات)'],['phone','رقم الاتصال (مع الرمز 966...)'],['wa','رقم الواتساب'],['ig','إنستقرام (اسم الحساب)'],['sc','سناب'],['tt','تيك توك'],['x','إكس'],['map','رابط خرائط قوقل']];
+var F=[['name','اسم المحل'],['descr','وصف قصير'],['slug','الرابط القصير (إنجليزي بدون مسافات)'],['phone','رقم الاتصال (مع الرمز 966...)'],['wa','رقم الواتساب'],['ig','إنستقرام (اسم الحساب)'],['sc','سناب'],['tt','تيك توك'],['x','إكس'],['map','رابط خرائط قوقل'],['hours','ساعات العمل (مثال: يومياً 9ص - 11م)'],['color','لون المحل (مثال: #0f766e)'],['logo','رابط صورة الشعار (اختياري)']];
 function form(i){
   var s=i>=0?shops[i]:{},box=document.getElementById('form');
   box.innerHTML='<div class="card"><h2>'+(i>=0?'تعديل المحل':'محل جديد')+'</h2>'+F.map(function(f){return '<label>'+f[1]+'</label><input id="f_'+f[0]+'" value="'+esc(s[f[0]])+'">'}).join('')+
@@ -99,8 +103,9 @@ function form(i){
 }
 function qr(slug){
   var url=location.href.split('#')[0]+'#m-'+slug;
-  document.getElementById('qbox').innerHTML='<div class="card" style="text-align:center"><h2>البار كود</h2><div id="qr"></div><p class="mu" style="word-break:break-all" dir="ltr">'+esc(url)+'</p><a class="btn" target="_blank" href="#m-'+esc(slug)+'">معاينة صفحة الزبون</a><p class="mu">للحفظ: اضغط مطولاً على الصورة أو خذ لقطة شاشة</p></div>';
-  new QRCode(document.getElementById('qr'),{text:url,width:220,height:220,correctLevel:QRCode.CorrectLevel.M});
+  document.getElementById('qbox').innerHTML='<div class="card" style="text-align:center"><h2>البار كود</h2><div id="qr"></div><p class="mu" style="word-break:break-all" dir="ltr">'+esc(url)+'</p><a class="btn" target="_blank" href="#m-'+esc(slug)+'">معاينة صفحة الزبون</a><button id="dl">تحميل البار كود PNG</button></div>';
+  document.getElementById('dl').onclick=function(){var c=document.querySelector('#qr canvas');var a=document.createElement('a');a.href=c.toDataURL('image/png');a.download='qr-'+slug+'.png';a.click()};
+  new QRCode(document.getElementById('qr'),{text:url,width:600,height:600,correctLevel:QRCode.CorrectLevel.M});
 }
 window.addEventListener('hashchange',route);route();
 </script>
