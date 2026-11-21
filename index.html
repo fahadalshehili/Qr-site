@@ -231,8 +231,21 @@ function form(i){
 function qr(slug){
   var url=location.href.split('#')[0]+'#m-'+slug;
   document.getElementById('qbox').innerHTML='<div class="card" style="text-align:center"><h2>البار كود</h2><div id="qr"></div><p class="mu" style="word-break:break-all" dir="ltr">'+esc(url)+'</p><a class="btn" target="_blank" href="#m-'+esc(slug)+'">معاينة صفحة الزبون</a><button id="dl">تحميل البار كود PNG</button></div>';
-  document.getElementById('dl').onclick=function(){var c=document.querySelector('#qr canvas');var a=document.createElement('a');a.href=c.toDataURL('image/png');a.download='qr-'+slug+'.png';a.click()};
+  var blob=null,fname='qr-'+slug+'.png';
   new QRCode(document.getElementById('qr'),{text:url,width:600,height:600,correctLevel:QRCode.CorrectLevel.M});
+  setTimeout(function(){
+    var c=document.querySelector('#qr canvas');if(!c)return;
+    var o=document.createElement('canvas');o.width=o.height=720;var x=o.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,720,720);x.drawImage(c,60,60,600,600);
+    o.toBlob(function(b){blob=b},'image/png');
+  },300);
+  document.getElementById('dl').onclick=async function(){
+    if(!blob){alert('انتظر ثانية ثم اضغط مرة ثانية');return}
+    var f=new File([blob],fname,{type:'image/png'});
+    try{
+      if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f],title:fname});return}
+    }catch(e){if(e&&e.name==='AbortError')return}
+    var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=fname;document.body.appendChild(a);a.click();a.remove();
+  };
 }
 window.addEventListener('hashchange',route);route();
 </script>
