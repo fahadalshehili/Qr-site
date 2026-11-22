@@ -100,6 +100,12 @@ async function route(){
   var r=await sb.auth.getSession();user=r.data.session?r.data.session.user:null;
   if(!user)return login();
   var rr=await sb.rpc('my_role'),role=rr&&rr.data;
+  if(!role&&rr&&rr.error){
+    // قاعدة البيانات لم تُحدَّث بعد أو خطأ مؤقت: المدير وحده يقرأ جدول shops مباشرة فنستخدمه كفحص احتياطي
+    var pr=await sb.from('shops').select('id').limit(1);
+    if(pr&&pr.data&&pr.data.length)role='admin';
+    else{app.className='w';app.innerHTML='<div class="top"><b>📱 حسابي</b><button class="s sm" id="out">خروج</button></div><div class="card" style="text-align:center"><h2>تعذر التحقق من صلاحيتك</h2><p class="mu">'+esc(rr.error.message||'')+'</p><button id="rt">إعادة المحاولة</button></div>';document.getElementById('out').onclick=async function(){await sb.auth.signOut();route()};document.getElementById('rt').onclick=function(){route()};return}
+  }
   if(role==='admin')return admin();
   if(role==='client')return clientHome();
   noRole();
